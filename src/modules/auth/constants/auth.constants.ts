@@ -1,6 +1,5 @@
 /**
- * Authentication-infrastructure constants (AI_RULES.md §35 — avoid magic
- * strings/numbers).
+ * Authentication constants (AI_RULES.md §35 — avoid magic strings/numbers).
  *
  * NOTE: metadata keys for @Public()/@Roles() intentionally remain in
  * common/decorators/public.decorator.ts and common/decorators/roles.decorator.ts
@@ -15,11 +14,7 @@ export const AUTH_STRATEGY = {
   JWT: 'jwt',
 } as const;
 
-/**
- * Reserved for the future Authentication Business Logic phase (token
- * rotation, revocation). Not consumed by any code in this infrastructure
- * phase — defined now so the contract is fixed ahead of implementation.
- */
+/** Kinds of tokens issued by AuthService (used only for internal clarity). */
 export enum TokenType {
   ACCESS = 'ACCESS',
   REFRESH = 'REFRESH',
@@ -30,4 +25,7 @@ export const AUTH_MESSAGES = {
   TOKEN_EXPIRED: 'The authentication token has expired.',
   TOKEN_INVALID: 'The authentication token is invalid.',
   UNAUTHORIZED: 'Authentication is required to access this resource.',
+  EMAIL_ALREADY_REGISTERED: 'An account with this email already exists.',
+  INVALID_CREDENTIALS: 'Invalid email or password.',
+  REFRESH_TOKEN_INVALID: 'The refresh token is invalid, expired, or has been revoked.',
 } as const;

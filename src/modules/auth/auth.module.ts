@@ -1,27 +1,34 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
+import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
 import { Algorithm } from 'jsonwebtoken';
+import { UsersModule } from '../users/users.module';
 import { AUTH_STRATEGY } from './constants/auth.constants';
+import { AuthController } from './controllers/auth.controller';
+import { RefreshToken, RefreshTokenSchema } from './schemas/refresh-token.schema';
+import { AuthService } from './services/auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 /**
- * AuthModule — Authentication INFRASTRUCTURE only (IMPLEMENTATION_PLAN.md M2,
- * infrastructure slice / Phase 4A). Registers the Passport + JWT verification
- * machinery and the JwtStrategy so that JwtAuthGuard (common/guards/jwt-auth.guard.ts)
- * has a real "jwt" strategy to authenticate against.
+ * AuthModule — full Authentication module (IMPLEMENTATION_PLAN.md M2).
  *
- * Deliberately contains NO controllers, services, DTOs, or schemas — token
- * issuance (login/register/refresh/logout) and user validation against
- * MongoDB belong to the Authentication Business Logic phase (Phase 4B),
- * per SYSTEM_ARCHITECTURE.md §8.3 and IMPLEMENTATION_PLAN.md M2.
+ * Phase 4A built the infrastructure slice (Passport + JwtModule + JwtStrategy).
+ * Phase 4B (this revision) adds the business-logic slice: AuthController,
+ * AuthService, and the Auth-owned RefreshToken schema, plus a dependency on
+ * UsersModule for credential read/create — exactly the dependency direction
+ * permitted by SYSTEM_ARCHITECTURE.md §4.2 ("Auth may depend on Users").
  *
- * PassportModule/JwtModule are exported so the future AuthService (Phase 4B)
- * can inject JwtService to sign tokens without this module needing to change.
+ * No controllers/services/schemas/DTOs from any other module are imported
+ * directly; UsersService is the only cross-module access point, per
+ * SYSTEM_ARCHITECTURE.md §1.3 ("Cross-module composition happens at the
+ * Service layer only").
  */
 @Module({
   imports: [
+    UsersModule,
+    MongooseModule.forFeature([{ name: RefreshToken.name, schema: RefreshTokenSchema }]),
     PassportModule.register({ defaultStrategy: AUTH_STRATEGY.JWT }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -48,7 +55,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       },
     }),
   ],
-  providers: [JwtStrategy],
+  controllers: [AuthController],
+  providers: [JwtStrategy, AuthService],
   exports: [PassportModule, JwtModule],
 })
 export class AuthModule {}

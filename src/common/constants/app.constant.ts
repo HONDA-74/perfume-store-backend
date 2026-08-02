@@ -8,4 +8,5 @@ export const APP_CONSTANTS = {
   DEFAULT_LIMIT: 10,
   MAX_LIMIT: 50,
   DEFAULT_SORT: 'createdAt:desc',
+  REQUEST_TIMEOUT_MS: 30_000,
 } as const;

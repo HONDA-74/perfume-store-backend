@@ -10,20 +10,18 @@ services:
     env_file:
       - .env
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - perfume-store-network
 
   mongodb:
     image: mongo:7
-    container_name: perfume-store-mongodb
-    restart: unless-stopped
-    ports:
-      - '27017:27017'
-    volumes:
-      - mongodb-data:/data/db
-    networks:
-      - perfume-store-network
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   mongodb-data:

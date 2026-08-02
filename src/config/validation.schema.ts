@@ -21,6 +21,9 @@ export const validationSchema = Joi.object({
   JWT_ACCESS_EXPIRY: Joi.string().default('15m'),
   JWT_REFRESH_SECRET: Joi.string().min(16).required(),
   JWT_REFRESH_EXPIRY: Joi.string().default('7d'),
+  JWT_ISSUER: Joi.string().default('luxury-perfume-store-api'),
+  JWT_AUDIENCE: Joi.string().default('luxury-perfume-store-clients'),
+  JWT_ALGORITHM: Joi.string().valid('HS256', 'HS384', 'HS512').default('HS256'),
 
   CLOUDINARY_CLOUD_NAME: Joi.string().required(),
   CLOUDINARY_API_KEY: Joi.string().required(),

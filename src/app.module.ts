@@ -2,6 +2,8 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { RolesGuard } from './common/guards/roles.guard';
 import { LoggerMiddleware } from './common/middlewares/logger.middleware';
 import { RequestIdMiddleware } from './common/middlewares/request-id.middleware';
 import configuration, { validationSchema } from './config';
@@ -47,18 +49,32 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
   ],
   providers: [
     /**
-     * Global rate limiting (AI_RULES.md §21). Stricter per-route overrides
-     * (e.g. /auth/login, /auth/register) are applied via @Throttle() once
-     * those endpoints are implemented in the Auth module (M2).
-     *
-     * Note: JwtAuthGuard/RolesGuard are intentionally NOT bound globally
-     * here yet — they depend on the "jwt" Passport strategy, which is
-     * registered by the Auth module in M2. Binding them now would break
-     * every route before a strategy exists. See common/guards/jwt-auth.guard.ts.
+     * Global rate limiting (AI_RULES.md §21). Runs first in the guard chain.
      */
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    /**
+     * Authentication (AI_RULES.md §23 — default deny unless explicitly
+     * allowed via @Public()). AuthModule now registers the "jwt" Passport
+     * strategy (modules/auth/strategies/jwt.strategy.ts), so JwtAuthGuard
+     * can be safely bound globally. No controller exists yet to protect —
+     * this takes effect automatically once endpoints are added in the
+     * business-logic / feature phases, with zero further wiring required.
+     */
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    /**
+     * Authorization — must run after JwtAuthGuard so request.user is
+     * already populated before role checks (AI_RULES.md §23). No-op for
+     * any route without an explicit @Roles() annotation.
+     */
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })

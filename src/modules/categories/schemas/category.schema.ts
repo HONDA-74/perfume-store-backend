@@ -1,4 +1,4 @@
-import { Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { BaseSchema } from '../../../database/base/base.schema';
 
@@ -7,22 +7,25 @@ export type CategoryDocument = Category & Document;
 /**
  * `categories` collection (DATABASE_DESIGN.md §4.2). Classifies products
  * into browsable groups (e.g. Eau de Parfum, Gift Sets).
- *
- * Extends `BaseSchema` without redeclaring `@Schema(...)`, inheriting
- * `timestamps`/`toJSON` via the prototype chain — the same pattern used by
- * `modules/users/schemas/user.schema.ts` and
- * `modules/auth/schemas/refresh-token.schema.ts`.
- *
- * Categories is a foundational leaf module (SYSTEM_ARCHITECTURE.md §4.2):
- * this schema is never imported by another module directly — cross-module
- * access, once Products exists, must go through `CategoriesService`
- * (exported by `CategoriesModule`).
  */
+@Schema({
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    versionKey: false,
+    transform: (_doc: unknown, ret: Record<string, unknown>) => {
+      ret.id = ret._id;
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+})
 export class Category extends BaseSchema {
-  @Prop({ required: true, unique: true, trim: true, minlength: 2, maxlength: 60 })
+  @Prop({ required: true, trim: true, minlength: 2, maxlength: 60 })
   name!: string;
 
-  @Prop({ required: true, unique: true, trim: true, lowercase: true })
+  @Prop({ required: true, trim: true, lowercase: true })
   slug!: string;
 
   @Prop({ trim: true })

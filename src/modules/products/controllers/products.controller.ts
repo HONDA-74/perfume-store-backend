@@ -14,6 +14,7 @@ import {
   ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -87,6 +88,7 @@ export class ProductsController {
   @ApiConflictResponse({ description: 'Duplicate SKU/slug.' })
   @ApiNotFoundResponse({ description: 'Referenced category or brand not found.' })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token.' })
+  @ApiForbiddenResponse({ description: 'Caller does not have the Admin role.' })
   create(@Body() dto: CreateProductDto): Promise<ProductResponseDto> {
     return this.productsService.create(dto);
   }
@@ -100,6 +102,7 @@ export class ProductsController {
   @ApiNotFoundResponse({ description: 'Product, category, or brand not found.' })
   @ApiConflictResponse({ description: 'Duplicate SKU/slug.' })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token.' })
+  @ApiForbiddenResponse({ description: 'Caller does not have the Admin role.' })
   update(
     @Param('id', ParseObjectIdPipe) id: string,
     @Body() dto: UpdateProductDto,
@@ -116,6 +119,7 @@ export class ProductsController {
   @ApiNoContentResponse({ description: 'Product soft-deleted.' })
   @ApiNotFoundResponse({ description: 'Product not found.' })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token.' })
+  @ApiForbiddenResponse({ description: 'Caller does not have the Admin role.' })
   async remove(@Param('id', ParseObjectIdPipe) id: string): Promise<void> {
     await this.productsService.remove(id);
   }
@@ -129,6 +133,7 @@ export class ProductsController {
   @ApiNotFoundResponse({ description: 'Product not found.' })
   @ApiConflictResponse({ description: 'Resulting stock would go negative.' })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token.' })
+  @ApiForbiddenResponse({ description: 'Caller does not have the Admin role.' })
   updateStock(
     @Param('id', ParseObjectIdPipe) id: string,
     @Body() dto: UpdateStockDto,

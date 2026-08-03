@@ -75,11 +75,13 @@ export class QueryProductDto {
 
   @ApiPropertyOptional({ description: 'Filter by featured/homepage-curation flag.' })
   @IsOptional()
+  @Type(() => Boolean)
   @IsBoolean()
   isFeatured?: boolean;
 
   @ApiPropertyOptional({ description: 'When true, only returns products with stockQuantity > 0.' })
   @IsOptional()
+  @Type(() => Boolean)
   @IsBoolean()
   inStock?: boolean;
 

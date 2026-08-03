@@ -97,7 +97,13 @@ export class ProductResponseDto {
     dto.gender = product.gender;
     dto.concentration = product.concentration;
     dto.sizeMl = product.sizeMl;
-    dto.notes = product.notes;
+    dto.notes = product.notes
+      ? {
+          top: product.notes.top ?? [],
+          middle: product.notes.middle ?? [],
+          base: product.notes.base ?? [],
+        }
+      : undefined;
     dto.images = product.images ?? [];
     dto.isActive = product.isActive;
     dto.isFeatured = product.isFeatured;

@@ -38,6 +38,10 @@ export class Category extends BaseSchema {
    */
   @Prop({ default: true })
   isActive!: boolean;
+
+  createdAt!: Date;
+
+  updatedAt!: Date;
 }
 
 export const CategorySchema = SchemaFactory.createForClass(Category);

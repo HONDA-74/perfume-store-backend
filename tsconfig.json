@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "types": ["jest", "node"],
+    "lib": ["ES2021"],
     "module": "commonjs",
     "declaration": false,
     "removeComments": true,

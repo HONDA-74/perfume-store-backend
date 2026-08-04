@@ -38,7 +38,7 @@ export class User extends BaseSchema {
   @Prop({ required: true, trim: true, minlength: 2, maxlength: 100 })
   fullName!: string;
 
-  @Prop({ required: true, unique: true, lowercase: true, trim: true })
+  @Prop({ required: true, lowercase: true, trim: true })
   email!: string;
 
   @Prop({ required: true, select: false })

@@ -35,6 +35,7 @@ describe('Orders Module (E2E)', () => {
   const CUSTOMER_ID_2 = new Types.ObjectId().toHexString();
   const ADMIN_ID = new Types.ObjectId().toHexString();
   const ADDRESS_ID = new Types.ObjectId().toHexString();
+  const ADDRESS_ID_2 = new Types.ObjectId().toHexString();
 
   let productId: string;
   let productId2: string;
@@ -174,7 +175,7 @@ describe('Orders Module (E2E)', () => {
         isActive: true,
         isDeleted: false,
         deletedAt: null,
-        addresses: [{ _id: new Types.ObjectId(), ...shippingAddress }],
+        addresses: [{ _id: new Types.ObjectId(ADDRESS_ID_2), ...shippingAddress }],
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -412,7 +413,7 @@ describe('Orders Module (E2E)', () => {
     it('should return all orders when called by Admin', async () => {
       // Place a second order for customer2
       await addToCart(customerToken2, productId2, 1);
-      await checkout(customerToken2);
+      await checkout(customerToken2, ADDRESS_ID_2);
 
       const response = await request(app.getHttpServer())
         .get('/api/v1/orders')

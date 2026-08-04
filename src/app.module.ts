@@ -8,6 +8,7 @@ import { LoggerMiddleware } from './common/middlewares/logger.middleware';
 import { RequestIdMiddleware } from './common/middlewares/request-id.middleware';
 import configuration, { validationSchema } from './config';
 import { DatabaseModule } from './database/database.module';
+import { AiModule } from './modules/ai/ai.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BrandsModule } from './modules/brands/brands.module';
 import { CartModule } from './modules/cart/cart.module';
@@ -46,6 +47,7 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     WishlistModule,
     OrdersModule,
     UploadsModule,
+    AiModule,
   ],
   providers: [
     /**
@@ -57,11 +59,7 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     },
     /**
      * Authentication (AI_RULES.md §23 — default deny unless explicitly
-     * allowed via @Public()). AuthModule now registers the "jwt" Passport
-     * strategy (modules/auth/strategies/jwt.strategy.ts), so JwtAuthGuard
-     * can be safely bound globally. No controller exists yet to protect —
-     * this takes effect automatically once endpoints are added in the
-     * business-logic / feature phases, with zero further wiring required.
+     * allowed via @Public()).
      */
     {
       provide: APP_GUARD,
@@ -69,8 +67,7 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     },
     /**
      * Authorization — must run after JwtAuthGuard so request.user is
-     * already populated before role checks (AI_RULES.md §23). No-op for
-     * any route without an explicit @Roles() annotation.
+     * already populated before role checks (AI_RULES.md §23).
      */
     {
       provide: APP_GUARD,

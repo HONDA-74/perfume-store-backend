@@ -37,4 +37,18 @@ export const validationSchema = Joi.object({
 
   SWAGGER_ENABLED: Joi.boolean().default(true),
   SWAGGER_PATH: Joi.string().default('api/docs'),
+
+  // AI Recommendation module (IMPLEMENTATION_PLAN.md M11) — optional so
+  // environments without Gemini/Atlas Vector Search configured yet can
+  // still boot; EmbeddingService/GeminiChatService/VectorSearchService
+  // fail or degrade gracefully at call time, not at startup.
+  GEMINI_API_KEY: Joi.string().allow('').optional(),
+  GEMINI_EMBEDDING_MODEL: Joi.string().default('text-embedding-004'),
+  GEMINI_CHAT_MODEL: Joi.string().default('gemini-2.0-flash'),
+  MONGODB_VECTOR_INDEX_NAME: Joi.string().default('knowledge_vector_index'),
+  AI_VECTOR_TOP_K: Joi.number().default(5),
+  AI_PRODUCT_TOP_K: Joi.number().default(8),
+  AI_CONVERSATION_HISTORY_LIMIT: Joi.number().default(20),
+  THROTTLE_AI_LIMIT: Joi.number().default(5),
+  THROTTLE_AI_TTL: Joi.number().default(60),
 });

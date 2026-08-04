@@ -1,9 +1,26 @@
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ProductsModule } from '../products/products.module';
+import { WishlistController } from './controllers/wishlist.controller';
+import { Wishlist, WishlistSchema } from './schemas/wishlist.schema';
+import { WishlistService } from './services/wishlist.service';
 
 /**
- * WishlistModule — placeholder per IMPLEMENTATION_PLAN.md.
- * Controllers, services, DTOs, and schemas are added in this module's dedicated
- * implementation milestone (see IMPLEMENTATION_PLAN.md).
+ * WishlistModule — full implementation (IMPLEMENTATION_PLAN.md M8).
+ *
+ * Depends on ProductsModule (exported service, never its schema) per
+ * SYSTEM_ARCHITECTURE.md §4.2 ("Wishlist: Products, Users"). Does not
+ * import UsersModule — see WishlistService's doc comment for why that
+ * dependency isn't needed. Must never import CartModule or OrdersModule
+ * (SYSTEM_ARCHITECTURE.md §4.2 "Wishlist: Must NOT Depend On: Cart, Orders").
  */
-@Module({})
+@Module({
+  imports: [
+    MongooseModule.forFeature([{ name: Wishlist.name, schema: WishlistSchema }]),
+    ProductsModule,
+  ],
+  controllers: [WishlistController],
+  providers: [WishlistService],
+  exports: [WishlistService],
+})
 export class WishlistModule {}

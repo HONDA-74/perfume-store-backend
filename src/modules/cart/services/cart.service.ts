@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 import { ProductsService } from '../../products/services/products.service';
 import { CART_MESSAGES } from '../constants/cart.constants';
 import { AddCartItemDto } from '../dto/add-cart-item.dto';
@@ -122,6 +122,36 @@ export class CartService {
     await cart.save();
 
     this.logger.log(`Cart cleared (userId=${userId})`);
+  }
+
+  /**
+   * Session-aware variant used exclusively by OrdersService during checkout
+   * transactions. Clears the cart within the provided Mongoose ClientSession
+   * so the write participates in the same ACID transaction as order creation
+   * and stock decrements — preventing a crash from leaving the cart non-empty
+   * after the order has already been committed.
+   *
+   * Uses findOneAndUpdate rather than document.save() so the session is
+   * propagated correctly to the driver (Mongoose's save() does not reliably
+   * accept a session on embedded-array mutations across all driver versions).
+   */
+  async clearWithSession(userId: string, session: ClientSession): Promise<void> {
+    await this.cartModel.findOneAndUpdate({ userId }, { $set: { items: [] } }, { session }).exec();
+
+    this.logger.log(`Cart cleared within transaction (userId=${userId})`);
+  }
+
+  /**
+   * Returns the raw cart document (not a DTO) within the given session so
+   * OrdersService can read the items as part of the checkout transaction.
+   * The document is read with the session so it participates in the
+   * snapshot-isolation guarantee MongoDB provides within a transaction.
+   */
+  async getCartDocumentForCheckout(
+    userId: string,
+    session: ClientSession,
+  ): Promise<CartDocument | null> {
+    return this.cartModel.findOne({ userId }).session(session).exec();
   }
 
   private async getOrCreateCartDocument(userId: string): Promise<CartDocument> {

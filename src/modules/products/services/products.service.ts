@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, isValidObjectId, Model, UpdateQuery } from 'mongoose';
+import { ClientSession, FilterQuery, isValidObjectId, Model, UpdateQuery } from 'mongoose';
 import { PaginatedResult } from '../../../common/types/interfaces/paginated-result.interface';
 import { buildPaginationMeta, normalizePagination } from '../../../common/utils/pagination.util';
 import { slugify } from '../../../common/utils/slugify.util';
@@ -293,6 +293,67 @@ export class ProductsService {
     this.logger.log(`Product stock updated (id=${updated.id}, operation=${dto.operation})`);
 
     return ProductResponseDto.fromEntity(updated);
+  }
+
+  /**
+   * Session-aware atomic DECREMENT used exclusively by OrdersService during
+   * checkout transactions. The guard condition (`stockQuantity: { $gte: quantity }`)
+   * is evaluated by MongoDB atomically within the session — two concurrent
+   * checkouts racing for the last unit will both attempt this operation, but
+   * only one will find `stockQuantity >= quantity` true; the other receives
+   * null and the transaction aborts with a 409.
+   *
+   * Accepts an optional `ClientSession` so the decrement participates in the
+   * same ACID boundary as order creation and cart clearing — if any later step
+   * in the transaction fails, MongoDB rolls back this decrement automatically,
+   * eliminating the need for manual compensation logic.
+   *
+   * Returns the updated product document (or null if the guard condition
+   * prevented the update), letting the caller decide how to handle the failure.
+   */
+  async decrementStockAtomic(
+    id: string,
+    quantity: number,
+    session: ClientSession | null,
+  ): Promise<ProductDocument | null> {
+    /*
+     * WHY this filter: isActive && !isDeleted re-validates that the product
+     * is still purchasable at the moment the transaction commits — not just
+     * when the cart was populated. A product deactivated after the customer
+     * added it to cart will fail here, inside the transaction, preventing
+     * the order from committing.
+     */
+    const filter: FilterQuery<ProductDocument> = {
+      _id: id,
+      isDeleted: false,
+      isActive: true,
+      stockQuantity: { $gte: quantity },
+    };
+
+    const queryOpts: Record<string, unknown> = { new: true };
+    if (session) {
+      queryOpts.session = session;
+    }
+
+    return this.productModel
+      .findOneAndUpdate(filter, { $inc: { stockQuantity: -quantity } }, queryOpts)
+      .exec();
+  }
+
+  /**
+   * Validates product existence and purchasability within a session.
+   * Used by OrdersService to re-verify the product is active and in
+   * stock before committing a checkout transaction.
+   */
+  async findActiveProductForCheckout(
+    id: string,
+    session: ClientSession | null,
+  ): Promise<ProductDocument | null> {
+    const query = this.productModel.findOne({ _id: id, isDeleted: false, isActive: true });
+    if (session) {
+      query.session(session);
+    }
+    return query.exec();
   }
 
   private async assertCategoryAndBrandExist(categoryId: string, brandId: string): Promise<void> {

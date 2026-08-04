@@ -443,6 +443,93 @@ export class OrdersService {
     return OrderResponseDto.fromEntity(order);
   }
 
+  // ── Integration methods for PaymentsModule (M12) ─────────────────────────
+
+  /**
+   * Retrieves the authoritative total for a pending order to create a PaymentIntent.
+   * Throws 403 if the order doesn't belong to the user, or 409 if not PENDING.
+   */
+  async findOrderTotalForPayment(id: string, userId: string): Promise<number> {
+    const order = await this.orderModel.findById(id).lean().exec();
+
+    if (!order) {
+      throw new NotFoundException(ORDER_MESSAGES.NOT_FOUND);
+    }
+
+    if (order.userId.toString() !== userId) {
+      throw new ForbiddenException(ORDER_MESSAGES.FORBIDDEN);
+    }
+
+    if (order.status !== OrderStatus.PENDING) {
+      throw new ConflictException('Payment can only be initiated for PENDING orders.');
+    }
+
+    return order.total;
+  }
+
+  /**
+   * Invoked by PaymentsService when a payment intent succeeds.
+   * Transitions the order status to CONFIRMED and payment status to PAID.
+   */
+  async markAsPaid(id: string, paymentStatus: PaymentStatus): Promise<void> {
+    const order = await this.orderModel.findById(id).exec();
+
+    if (!order) {
+      this.logger.warn(`markAsPaid: Order ${id} not found`);
+      return;
+    }
+
+    order.paymentStatus = paymentStatus;
+
+    // Only advance to CONFIRMED if it's still PENDING (defensive check)
+    if (order.status === OrderStatus.PENDING) {
+      order.status = OrderStatus.CONFIRMED;
+    }
+
+    await order.save();
+    this.logger.log(`Order ${id} marked as PAID and CONFIRMED`);
+  }
+
+  /**
+   * Invoked by PaymentsService when a payment intent fails.
+   */
+  async markAsPaymentFailed(id: string): Promise<void> {
+    const order = await this.orderModel.findById(id).exec();
+
+    if (!order) {
+      this.logger.warn(`markAsPaymentFailed: Order ${id} not found`);
+      return;
+    }
+
+    // Usually we just leave it PENDING but UNPAID, so the customer can retry.
+    // If business rules dictate cancelling it, we could do it here.
+    // For now, we just log it as the payment status remains UNPAID.
+    this.logger.log(`Order ${id} payment failed, remains UNPAID`);
+  }
+
+  /**
+   * Invoked by PaymentsService when a refund is processed.
+   * Transitions payment status to REFUNDED, and order status to CANCELLED if not already.
+   */
+  async markAsRefunded(id: string): Promise<void> {
+    const order = await this.orderModel.findById(id).exec();
+
+    if (!order) {
+      this.logger.warn(`markAsRefunded: Order ${id} not found`);
+      return;
+    }
+
+    order.paymentStatus = PaymentStatus.REFUNDED;
+
+    if (order.status !== OrderStatus.CANCELLED) {
+      order.status = OrderStatus.CANCELLED;
+      order.cancelledAt = new Date();
+    }
+
+    await order.save();
+    this.logger.log(`Order ${id} marked as REFUNDED and CANCELLED`);
+  }
+
   // ── private helpers ──────────────────────────────────────────────────
 
   /**

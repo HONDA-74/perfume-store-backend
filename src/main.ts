@@ -38,6 +38,7 @@ function setupSwagger(app: NestExpressApplication, configService: ConfigService)
     .addTag('Cart')
     .addTag('Wishlist')
     .addTag('Orders')
+    .addTag('Payments')
     .addTag('Uploads')
     .build();
 
@@ -67,6 +68,17 @@ async function bootstrap(): Promise<void> {
   if (configService.get<boolean>('app.trustProxy')) {
     app.set('trust proxy', 1);
   }
+
+  // Stripe webhook requires raw body verification. We must bypass the global
+  // express.json() parser for this specific route.
+  app.use(
+    `/${globalPrefix}/payments/webhook`,
+    json({
+      verify: (req: any, _res, buf) => {
+        req.rawBody = buf;
+      },
+    }),
+  );
 
   app.use(json({ limit: bodyLimit }));
   app.use(urlencoded({ extended: true, limit: bodyLimit }));

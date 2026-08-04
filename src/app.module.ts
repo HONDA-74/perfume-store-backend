@@ -14,6 +14,7 @@ import { BrandsModule } from './modules/brands/brands.module';
 import { CartModule } from './modules/cart/cart.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { OrdersModule } from './modules/orders/orders.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 import { ProductsModule } from './modules/products/products.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { UsersModule } from './modules/users/users.module';
@@ -46,6 +47,7 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     CartModule,
     WishlistModule,
     OrdersModule,
+    PaymentsModule,
     UploadsModule,
     AiModule,
   ],

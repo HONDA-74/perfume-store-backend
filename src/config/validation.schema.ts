@@ -51,4 +51,11 @@ export const validationSchema = Joi.object({
   AI_CONVERSATION_HISTORY_LIMIT: Joi.number().default(20),
   THROTTLE_AI_LIMIT: Joi.number().default(5),
   THROTTLE_AI_TTL: Joi.number().default(60),
+
+  // Stripe Payments module (IMPLEMENTATION_PLAN.md M12) — optional so
+  // environments without Stripe configured yet can still boot; PaymentsService
+  // throws a clear runtime error if keys are missing when called.
+  STRIPE_SECRET_KEY: Joi.string().allow('').optional(),
+  STRIPE_WEBHOOK_SECRET: Joi.string().allow('').optional(),
+  STRIPE_PUBLISHABLE_KEY: Joi.string().allow('').optional(),
 });

@@ -3,6 +3,7 @@ import cloudinaryConfig from './cloudinary.config';
 import databaseConfig from './database.config';
 import geminiConfig from './gemini.config';
 import jwtConfig from './jwt.config';
+import stripeConfig from './stripe.config';
 import throttlerConfig from './throttler.config';
 
 export default [
@@ -12,6 +13,7 @@ export default [
   cloudinaryConfig,
   throttlerConfig,
   geminiConfig,
+  stripeConfig,
 ];
 
 export { validationSchema } from './validation.schema';

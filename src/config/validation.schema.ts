@@ -43,7 +43,7 @@ export const validationSchema = Joi.object({
   // still boot; EmbeddingService/GeminiChatService/VectorSearchService
   // fail or degrade gracefully at call time, not at startup.
   GEMINI_API_KEY: Joi.string().allow('').optional(),
-  GEMINI_EMBEDDING_MODEL: Joi.string().default('text-embedding-004'),
+  GEMINI_EMBEDDING_MODEL: Joi.string().default('gemini-embedding-001'),
   GEMINI_CHAT_MODEL: Joi.string().default('gemini-2.0-flash'),
   MONGODB_VECTOR_INDEX_NAME: Joi.string().default('knowledge_vector_index'),
   AI_VECTOR_TOP_K: Joi.number().default(5),

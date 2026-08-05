@@ -23,7 +23,7 @@ async function bootstrap(): Promise<void> {
   const knowledgeModel = app.get<Model<KnowledgeDocument>>(getModelToken(Knowledge.name));
   const embeddingService = app.get(EmbeddingService);
 
-  const knowledgeDir = join(__dirname, '../../ai/knowledge');
+  const knowledgeDir = join(__dirname, '../../modules/ai/knowledge');
   const files = readdirSync(knowledgeDir).filter((f) => f.endsWith('.md'));
 
   let totalChunks = 0;

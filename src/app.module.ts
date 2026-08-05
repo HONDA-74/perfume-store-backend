@@ -13,6 +13,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { BrandsModule } from './modules/brands/brands.module';
 import { CartModule } from './modules/cart/cart.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ProductsModule } from './modules/products/products.module';
@@ -50,6 +51,7 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     PaymentsModule,
     UploadsModule,
     AiModule,
+    NotificationsModule,
   ],
   providers: [
     /**

@@ -58,4 +58,11 @@ export const validationSchema = Joi.object({
   STRIPE_SECRET_KEY: Joi.string().allow('').optional(),
   STRIPE_WEBHOOK_SECRET: Joi.string().allow('').optional(),
   STRIPE_PUBLISHABLE_KEY: Joi.string().allow('').optional(),
+
+  // Notifications module (IMPLEMENTATION_PLAN.md M13)
+  SMTP_HOST: Joi.string().required(),
+  SMTP_PORT: Joi.number().default(587),
+  SMTP_USER: Joi.string().required(),
+  SMTP_PASSWORD: Joi.string().required(),
+  SMTP_FROM: Joi.string().email().required(),
 });
